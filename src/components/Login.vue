@@ -6,7 +6,13 @@
         <img src="../assets/logo.png" alt="." />
       </div>
       <!-- 登陆表单区域 -->
-      <el-form label-width="0px" class="login_form" :model="loginForm" :rules="loginFormRlues" ref="loginFormRef">
+      <el-form
+        label-width="0px"
+        class="login_form"
+        :model="loginForm"
+        :rules="loginFormRlues"
+        ref="loginFormRef"
+      >
         <!-- 用户名 -->
         <el-form-item prop="username">
           <el-input v-model="loginForm.username" prefix-icon="el-icon-user"></el-input>
@@ -56,8 +62,8 @@ export default {
       this.$refs.loginFormRef.validate(async value => {
         if (!value) return
         const { data: res } = await this.$http.post('login', this.loginForm)
-        if (res.meta.status !== 200) return this.$message.error('登陆失败')
-        this.$message.success('登陆成功')
+        if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+        this.$message.success(res.meta.msg)
         window.sessionStorage.setItem('token', res.data.token)
         this.$router.push('/home')
       })
