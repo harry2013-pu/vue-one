@@ -12,10 +12,7 @@
       <!-- 添加角色按钮区域 -->
       <el-row>
         <el-col>
-          <el-button
-            type="primary"
-            @click="showAddCateDialogVisible"
-          >添加分类</el-button>
+          <el-button type="primary" @click="showAddCateDialogVisible">添加分类</el-button>
         </el-col>
       </el-row>
 
@@ -29,44 +26,28 @@
         :load="load"
         :tree-props="{ children: 'children', hasChildren: 'children' }"
       >
-        <el-table-column
-          label="#"
-          type="index"
-        >
+        <el-table-column label="#" type="index">
           <template slot-scope="scope">
-            <span v-if="show(scope.row)">{{
+            <span v-if="show(scope.row)">
+              {{
               cateList.findIndex((value) => value.cat_id == scope.row.cat_id) +
               1 +
               (queryInfo.pagenum - 1) * queryInfo.pagesize
-            }}</span>
+              }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="cat_name"
-          label="分类名称"
-        ></el-table-column>
-        <el-table-column
-          prop="email"
-          label="是否有效"
-        >
+        <el-table-column prop="cat_name" label="分类名称"></el-table-column>
+        <el-table-column prop="email" label="是否有效">
           <template slot-scope="scope">
-            <span><i
-                class="el-icon-success"
-                v-if="!scope.row.cat_deleted"
-              ></i></span>
+            <span>
+              <i class="el-icon-success" v-if="!scope.row.cat_deleted"></i>
+            </span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="cat_level"
-          label="排序"
-        >
+        <el-table-column prop="cat_level" label="排序">
           <template slot-scope="scope">
-            <el-tag
-              type="primary"
-              effect="dark"
-              size="mini"
-              v-if="scope.row.cat_level === 0"
-            >一级</el-tag>
+            <el-tag type="primary" effect="dark" size="mini" v-if="scope.row.cat_level === 0">一级</el-tag>
             <el-tag
               type="success"
               effect="dark"
@@ -87,7 +68,7 @@
               size="mini"
               type="primary"
               icon="el-icon-edit"
-              @click="editCateNameDialog(scope.row.cat_id)"
+              @click="showEditCateNameDialog(scope.row.cat_id)"
             >编辑</el-button>
             <el-button
               size="mini"
@@ -108,8 +89,7 @@
         :page-size="queryInfo.pagesize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"
-      >
-      </el-pagination>
+      ></el-pagination>
     </el-card>
 
     <!-- 添加商品分类对话框 -->
@@ -141,15 +121,28 @@
           ></el-cascader>
         </el-form-item>
       </el-form>
-      <span
-        slot="footer"
-        class="dialog-footer"
-      >
+      <span slot="footer" class="dialog-footer">
         <el-button @click="addDialogVisible = false">取 消</el-button>
-        <el-button
-          type="primary"
-          @click="addCate"
-        >确 定</el-button>
+        <el-button type="primary" @click="addCate">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 编辑商品分类名称的对话框 -->
+    <el-dialog title="修改分类" :visible.sync="editCateNameDialogVisible" width="50%" @close="editCateDialogClosed">
+      <!-- 编辑分类表单 -->
+      <el-form
+        ref="editCateFormRef"
+        :rules="editCateFormRules"
+        :model="editCateForm"
+        label-width="100px"
+      >
+        <el-form-item label="分类名称:" prop="cat_name">
+          <el-input v-model="editCateForm.cat_name"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editCateNameDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editCate">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -180,6 +173,19 @@ export default {
       },
       // 添加分类表单的验证规则
       addCateFormRules: {
+        cat_name: [
+          { required: true, message: '请输入分类名称', trigger: 'blur' },
+          { min: 1, max: 10, message: '长度在 1 到 10个字符', trigger: 'blur' }
+        ]
+      },
+      // 控制编辑商品分类对话框的显示与隐藏
+      editCateNameDialogVisible: false,
+      editCateForm: {
+        cat_id: 0,
+        cat_name: ''
+      },
+      // 添加分类表单的验证规则
+      editCateFormRules: {
         cat_name: [
           { required: true, message: '请输入分类名称', trigger: 'blur' },
           { min: 1, max: 10, message: '长度在 1 到 10个字符', trigger: 'blur' }
@@ -258,6 +264,35 @@ export default {
       this.$message.success(res.meta.msg)
       this.getCateList()
     },
+    // 点击按钮，显示编辑商品分类名称对话框
+    async showEditCateNameDialog(id) {
+      const { data: res } = await this.$http.get('categories/' + id)
+      if (res.meta.status !== 200) {
+        return this.$message.error('查询商品分类信息失败！')
+      }
+      this.editCateForm.cat_id = res.data.cat_id
+      this.editCateForm.cat_name = res.data.cat_name
+      this.editCateNameDialogVisible = true
+      console.log(this.editCateForm)
+    },
+    // 点击按钮，编辑商品分类名称
+    editCate() {
+      this.$refs.editCateFormRef.validate(async (valid) => {
+        if (!valid) return
+        const { data: res } = await this.$http.put(`categories/${this.editCateForm.cat_id}`, {
+          cat_name: this.editCateForm.cat_name
+        })
+        if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+
+        this.$message.success(res.meta.msg)
+        this.getCateList()
+        this.editCateNameDialogVisible = false
+      })
+    },
+    // 取消编辑分类对话框时重置表单数据
+    editCateDialogClosed() {
+      this.$refs.editCateFormRef.resetFields()
+    },
     // 对分类数据进行懒加载优化
     load(tree, treeNode, resolve) {
       setTimeout(() => {
@@ -283,7 +318,9 @@ export default {
     parentCateChange() {
       if (this.selectedKeys.length > 0) {
         // 为父id赋值
-        this.addCateForm.cat_pid = this.selectedKeys[this.selectedKeys.length - 1]
+        this.addCateForm.cat_pid = this.selectedKeys[
+          this.selectedKeys.length - 1
+        ]
         // 为分类层级赋值
         this.addCateForm.cat_level = this.selectedKeys.length
       } else {
@@ -295,9 +332,12 @@ export default {
     },
     // 点击按钮，添加新的分类
     addCate() {
-      this.$refs.addCateFormRef.validate(async valid => {
+      this.$refs.addCateFormRef.validate(async (valid) => {
         if (!valid) return
-        const { data: res } = await this.$http.post('categories', this.addCateForm)
+        const { data: res } = await this.$http.post(
+          'categories',
+          this.addCateForm
+        )
 
         if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
 
@@ -318,7 +358,10 @@ export default {
   watch: {
     // 解决删除页面最后一条数据时，数据为空的问题
     total() {
-      if (this.total === (this.queryInfo.pagenum - 1) * this.queryInfo.pagesize && this.total !== 0) {
+      if (
+        this.total === (this.queryInfo.pagenum - 1) * this.queryInfo.pagesize &&
+        this.total !== 0
+      ) {
         this.queryInfo.pagenum -= 1
         this.getCateList()
       }
