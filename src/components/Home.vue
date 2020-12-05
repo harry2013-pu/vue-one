@@ -21,7 +21,7 @@
           :collapse="isCollapse"
           :collapse-transition="false"
           router
-          :default-active="this.$route.path"
+          :default-active="this.actPath"
         >
           <!-- 一级菜单 -->
           <el-submenu :index="item.id + ''" v-for="item in menulist" :key="item.id">
@@ -87,6 +87,17 @@ export default {
     // 点击切换菜单的折叠与展开
     toggleCollapse() {
       this.isCollapse = !this.isCollapse
+    }
+  },
+  computed: {
+    actPath() {
+      const index1 = this.$route.path.toString().indexOf('/')
+      const index2 = this.$route.path.toString().indexOf('/', index1 + 1)
+      let value = this.$route.path
+      if (index2 !== -1) {
+        value = this.$route.path.toString().slice(0, index2)
+      }
+      return value
     }
   }
 }

@@ -12,7 +12,7 @@
       <!-- 添加角色按钮区域 -->
       <el-row>
         <el-col>
-          <el-button type="primary">添加角色</el-button>
+          <el-button type="primary" @click="showAddDialog">添加角色</el-button>
         </el-col>
       </el-row>
 
@@ -85,6 +85,34 @@
       </span>
     </el-dialog>
 
+    <!-- 添加用户角色信息对话框 -->
+    <el-dialog
+      title="添加角色信息"
+      :visible.sync="addRoleNameDialogVisible"
+      width="50%"
+      @close="addRoleNameDialogClose"
+    >
+      <!-- 内容主体区域 -->
+      <el-form
+        :model="addRoleNameForm"
+        :rules="addRoleNameFormRules"
+        ref="addRoleNameFormRef"
+        label-width="100px"
+      >
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input v-model="addRoleNameForm.roleName"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="roleDesc">
+          <el-input v-model="addRoleNameForm.roleDesc"></el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 底部区 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="addRoleNameDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addRoleName">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <!-- 分配用户权限的对话框 -->
     <el-dialog
       title="修改用户权限"
@@ -107,9 +135,26 @@ export default {
   data() {
     return {
       rolesList: [],
+      // 编辑角色
       editRoleNameDialogVisible: false,
       editRoleNameForm: {},
       editRoleNameFormRules: {
+        roleName: [
+          { required: true, message: '请输入角色名称', trigger: 'blur' },
+          { min: 1, max: 10, message: '长度在 1 到 10个字符', trigger: 'blur' }
+        ],
+        roleDesc: [
+          { required: true, message: '请输入角色描述', trigger: 'blur' },
+          { min: 1, max: 15, message: '长度在 1 到 15个字符', trigger: 'blur' }
+        ]
+      },
+      // 添加角色
+      addRoleNameDialogVisible: false,
+      addRoleNameForm: {
+        roleName: '',
+        roleDesc: ''
+      },
+      addRoleNameFormRules: {
         roleName: [
           { required: true, message: '请输入角色名称', trigger: 'blur' },
           { min: 1, max: 10, message: '长度在 1 到 10个字符', trigger: 'blur' }
@@ -256,6 +301,31 @@ export default {
       this.$message.success(res.meta.msg)
       this.getRolesList()
       this.setRightDialogVisible = false
+    },
+    // 点击按钮，添加角色
+    showAddDialog() {
+      this.addRoleNameDialogVisible = true
+    },
+    // 取消添加角色信息对话框时重置表单
+    addRoleNameDialogClose() {
+      this.$refs.addRoleNameFormRef.resetFields()
+    },
+    // 更改角色信息
+    addRoleName() {
+      this.$refs.addRoleNameFormRef.validate(async (valid) => {
+        if (!valid) return
+        // 发起真正的修改角色信息网络请求
+        const { data: res } = await this.$http.post('roles', {
+          roleName: this.addRoleNameForm.roleName,
+          roleDesc: this.addRoleNameForm.roleDesc
+        })
+        if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
+        this.$message.success(res.meta.msg)
+        // 隐藏添加用户的对话框
+        this.addRoleNameDialogVisible = false
+        // 重新获取用户列表
+        this.getRolesList()
+      })
     }
   }
 }

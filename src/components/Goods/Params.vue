@@ -15,7 +15,7 @@
       <!-- 选择商品分类区域 -->
       <el-row class="cat_opt">
         <el-col>
-          <span>选择商品分类:</span>
+          <span>选择商品分类: </span>
           <!-- 级联选择器 -->
           <!-- options 用来指定数据源 -->
           <!-- props 用来指定配置对象 -->
