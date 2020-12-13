@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login from '../components/Login.vue'
+/* import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import Welcome from '../components/Welcome.vue'
 import Users from '../components/Users.vue'
@@ -11,7 +11,24 @@ import Params from '../components/Goods/Params.vue'
 import List from '../components/Goods/List.vue'
 import Add from '../components/Goods/Add.vue'
 import Order from '../components/Orders/Order.vue'
-import Report from '../components/Reports/Report.vue'
+import Report from '../components/Reports/Report.vue' */
+// 路由懒加载更改
+const Login = () => import(/* webpackChunkName: "login_home_welcome" */ '../components/Login.vue')
+const Home = () => import(/* webpackChunkName: "login_home_welcome" */ '../components/Home.vue')
+const Welcome = () => import(/* webpackChunkName: "login_home_welcome" */ '../components/Welcome.vue')
+
+const Users = () => import(/* webpackChunkName: "Users_Rights_Roles" */ '../components/Users.vue')
+const Rights = () => import(/* webpackChunkName: "Users_Rights_Roles" */ '../components/Power/Rights')
+const Roles = () => import(/* webpackChunkName: "Users_Rights_Roles" */ '../components/Power/Roles')
+
+const Categories = () => import(/* webpackChunkName: "Categories_Params" */ '../components/Goods/Categories.vue')
+const Params = () => import(/* webpackChunkName: "Categories_Params" */ '../components/Goods/Params.vue')
+
+const List = () => import(/* webpackChunkName: "List_Add" */ '../components/Goods/List.vue')
+const Add = () => import(/* webpackChunkName: "List_Add" */ '../components/Goods/Add.vue')
+
+const Order = () => import(/* webpackChunkName: "Order_Report" */ '../components/Orders/Order.vue')
+const Report = () => import(/* webpackChunkName: "Order_Report" */ '../components/Reports/Report.vue')
 
 Vue.use(VueRouter)
 
